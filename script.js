@@ -1,12 +1,13 @@
-async function getImages(){
+async function fetchImages(){
   try{
     const API_key = import.meta.env.VITE_API_KEY;
     const response = await fetch('https://api.unsplash.com/photos/?client_id=' + API_key);
     const data = await response.json(); 
-     
     const images = await Promise.all(data.map((image => preloadImages(image.urls.regular, image.alt_description, image.links.html))));  
-    renderImages(images);
 
+    if(!response.ok) throw new Error(response.status); 
+
+    renderImages(images);
     console.log(data)
     console.log(images);
   } catch(error){
@@ -22,7 +23,7 @@ function preloadImages(url, alt, anchor){
     img.title = alt;
     img.dataset.anchor = anchor; //Detta används sedan som href till <a>
     img.onload = resolve(img);
-    img.onerror = reject('Image load rejected.');
+    img.onerror = reject(new Error('Failed to load Image'));
   })
 }
 
@@ -46,4 +47,4 @@ function renderImages(images){
   imageContLayout.append(frag);
 }
 
-getImages();
+fetchImages();
